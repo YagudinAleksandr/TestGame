@@ -2,14 +2,31 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// Gameplay-кнопки для тестирования инвентаря. Навешивается на любой GameObject (например, GameManager).
+/// Обрабатывает: добавление монет, добавление предметов, добавление патронов, выстрел, удаление предмета.
+/// </summary>
 public class GameplayButtons : MonoBehaviour
 {
+    [Header("Кнопки на сцене")]
+    [Tooltip("Кнопка 'Добавить монеты' (Btn_AddCoins)")]
     [SerializeField] private Button btnAddCoins;
+
+    [Tooltip("Кнопка 'Добавить предмет' (Btn_AddItem)")]
     [SerializeField] private Button btnAddItem;
+
+    [Tooltip("Кнопка 'Добавить патроны' (Btn_AddAmmo)")]
     [SerializeField] private Button btnAddAmmo;
+
+    [Tooltip("Кнопка 'Удалить предмет' (Btn_DeleteItem)")]
     [SerializeField] private Button btnDeleteItem;
+
+    [Tooltip("Кнопка 'Выстрел' (Btn_Shot)")]
     [SerializeField] private Button btnShoot;
 
+    /// <summary>
+    /// Подписывает кнопки на обработчики событий.
+    /// </summary>
     private void Start()
     {
         if (btnAddCoins != null) btnAddCoins.onClick.AddListener(OnAddCoins);
@@ -19,6 +36,10 @@ public class GameplayButtons : MonoBehaviour
         if (btnShoot != null) btnShoot.onClick.AddListener(OnShoot);
     }
 
+    /// <summary>
+    /// Добавляет случайное количество монет (от 9 до 99).
+    /// Выводит: "Добавлено ([количество]) монет"
+    /// </summary>
     private void OnAddCoins()
     {
         int amount = Random.Range(9, 100);
@@ -26,6 +47,10 @@ public class GameplayButtons : MonoBehaviour
         Debug.Log($"Добавлено ({amount}) монет");
     }
 
+    /// <summary>
+    /// Добавляет 1 случайный предмет (weapon, head, torso) в инвентарь.
+    /// Выводит: "Добавлено [предмет] в слот: [id]" или "Инвентарь полон"
+    /// </summary>
     private void OnAddItem()
     {
         string[] items = { "Pistol", "AssaultRifle", "Cap", "Helmet", "Jacket", "BodyArmor" };
@@ -56,6 +81,11 @@ public class GameplayButtons : MonoBehaviour
         Debug.Log($"Добавлено {itemId} в слот: {slotAfter}");
     }
 
+    /// <summary>
+    /// Добавляет случайное количество патронов (10-30) случайного типа.
+    /// Сначала пополняет существующий стак, затем заполняет пустые слоты.
+    /// Выводит: "Добавлено ([количество]) [тип] в слот: [id]" или "Инвентарь полон"
+    /// </summary>
     private void OnAddAmmo()
     {
         string[] ammoTypes = { "PistolAmmo", "AssaultRifleAmmo" };
@@ -105,6 +135,11 @@ public class GameplayButtons : MonoBehaviour
         Debug.Log($"Добавлено ({amount}) {ammoId} в слот: {targetSlots[0]}");
     }
 
+    /// <summary>
+    /// Удаляет случайный предмет или стак из заполненного слота.
+    /// Пустые и заблокированные слоты не учитываются.
+    /// Выводит: "Удалено ([количество]) [предмет] из слота: [id]" или "Инвентарь пуст"
+    /// </summary>
     private void OnDeleteItem()
     {
         var inv = InventorySystem.Instance;
@@ -131,6 +166,11 @@ public class GameplayButtons : MonoBehaviour
         Debug.Log($"Удалено ({count}) {id} из слота: {idx}");
     }
 
+    /// <summary>
+    /// Делает выстрел из случайного оружия, тратит 1 патрону.
+    /// Выводит: "Выстрел из [оружие], патроны: [тип], урон: [урон]"
+    /// или "Нет оружия" / "Нет патронов для [оружие]"
+    /// </summary>
     private void OnShoot()
     {
         var inv = InventorySystem.Instance;
@@ -180,6 +220,10 @@ public class GameplayButtons : MonoBehaviour
         Debug.Log($"Выстрел из {weaponData.id}, патроны: {ammoId}, урон: {weaponData.damage}");
     }
 
+    /// <summary>
+    /// Ищет первый пустой разблокированный слот.
+    /// </summary>
+    /// <returns>Индекс пустого слота или -1, если все заняты.</returns>
     private int FindEmptySlot()
     {
         var slots = InventorySystem.Instance.Slots;
@@ -190,6 +234,12 @@ public class GameplayButtons : MonoBehaviour
         return -1;
     }
 
+    /// <summary>
+    /// Ищет слот с указанным предметом, начиная с заданного индекса.
+    /// </summary>
+    /// <param name="itemId">Идентификатор предмета для поиска.</param>
+    /// <param name="startIndex">Индекс, с которого начинать поиск.</param>
+    /// <returns>Индекс слота с предметом.</returns>
     private int FindSlotWithItem(string itemId, int startIndex)
     {
         var slots = InventorySystem.Instance.Slots;

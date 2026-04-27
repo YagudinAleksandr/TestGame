@@ -3,19 +3,51 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
 
+/// <summary>
+/// Визуальное представление одного слота инвентаря.
+/// Навешивается на преfab слота. Обрабатывает клики (разблокировка, tooltip), drag-and-drop.
+/// </summary>
 public class SlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler, IPointerClickHandler
 {
+    [Header("Ссылки на дочерние объекты префаба")]
+    [Tooltip("Image для отображения иконки предмета")]
     [SerializeField] private Image iconImage;
+
+    [Tooltip("GameObject с иконкой замка (показывается для заблокированных слотов)")]
     [SerializeField] private GameObject lockOverlay;
+
+    [Tooltip("TextMeshPro для отображения количества предметов в стаке")]
     [SerializeField] private TMP_Text countText;
+
+    /// <summary>
+    /// Фоновое изображение слота (получается автоматически).
+    /// </summary>
     private Image bgImage;
 
+    /// <summary>
+    /// Индекс данного слота в инвентаре (от 0 до TotalSlots-1).
+    /// </summary>
     private int slotIndex;
+
+    /// <summary>
+    /// Ссылка на слот, с которого началось перетаскивание (статическая, общая для всех слотов).
+    /// </summary>
     private static SlotUI dragSource;
+
+    /// <summary>
+    /// Временный объект-призрак, следующий за курсором при перетаскивании.
+    /// </summary>
     private GameObject dragGhost;
 
+    /// <summary>
+    /// Индекс данного слота.
+    /// </summary>
     public int SlotIndex => slotIndex;
 
+    /// <summary>
+    /// Инициализирует слот: задаёт индекс, получает фоновое изображение, настраивает RectTransform иконки.
+    /// </summary>
+    /// <param name="index">Индекс слота в инвентаре.</param>
     public void Initialize(int index)
     {
         this.slotIndex = index;
@@ -31,6 +63,11 @@ public class SlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         }
     }
 
+    /// <summary>
+    /// Обновляет визуальное состояние слота: иконка, количество, замок, фон.
+    /// </summary>
+    /// <param name="slot">Данные слота (предмет, количество).</param>
+    /// <param name="unlocked">Разблокирован ли слот.</param>
     public void Refresh(SlotData slot, bool unlocked)
     {
         if (lockOverlay != null) lockOverlay.SetActive(!unlocked);
@@ -72,6 +109,10 @@ public class SlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         }
     }
 
+    /// <summary>
+    /// Обработка клика: разблокировка заблокированного слота или показ tooltip с информацией о предмете.
+    /// </summary>
+    /// <param name="eventData">Данные события указателя.</param>
     public void OnPointerClick(PointerEventData eventData)
     {
         var inv = InventorySystem.Instance;
@@ -95,6 +136,10 @@ public class SlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         }
     }
 
+    /// <summary>
+    /// Начало перетаскивания: создаёт призрак иконки, скрывает оригинальную иконку.
+    /// </summary>
+    /// <param name="eventData">Данные события указателя.</param>
     public void OnBeginDrag(PointerEventData eventData)
     {
         var inv = InventorySystem.Instance;
@@ -124,12 +169,20 @@ public class SlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         if (iconImage != null) iconImage.enabled = false;
     }
 
+    /// <summary>
+    /// Перетаскивание: перемещает призрак иконки за курсором.
+    /// </summary>
+    /// <param name="eventData">Данные события указателя.</param>
     public void OnDrag(PointerEventData eventData)
     {
         if (dragGhost != null)
             dragGhost.transform.position = eventData.position;
     }
 
+    /// <summary>
+    /// Завершение перетаскивания: уничтожает призрак, восстанавливает иконку если предмет не был перемещён.
+    /// </summary>
+    /// <param name="eventData">Данные события указателя.</param>
     public void OnEndDrag(PointerEventData eventData)
     {
         if (dragGhost != null)
@@ -149,6 +202,10 @@ public class SlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         dragSource = null;
     }
 
+    /// <summary>
+    /// Сброс предмета на целевой слот: выполняет перемещение/стакание/обмен через InventorySystem.
+    /// </summary>
+    /// <param name="eventData">Данные события указателя.</param>
     public void OnDrop(PointerEventData eventData)
     {
         if (dragSource == null || dragSource == this) return;
