@@ -1,13 +1,28 @@
 using UnityEngine;
 using TMPro;
 
+/// <summary>
+/// Управляет визуальным отображением инвентаря: создаёт слоты, обновляет иконки/текст/монеты/вес.
+/// Навешивается на объект InventoryPanel или Scroll View на сцене.
+/// </summary>
 public class InventoryUI : MonoBehaviour
 {
+    [Header("Ссылки на объекты сцены")]
+    [Tooltip("Transform объекта Content из Scroll View (контейнер для слотов)")]
     [SerializeField] private Transform gridContent;
+
+    [Tooltip("Префаб слота инвентаря (должен содержать компонент SlotUI и дочерние Icon, Count, Lock)")]
     [SerializeField] private GameObject slotPrefab;
+
+    [Tooltip("TextMeshPro — текст для отображения количества монет")]
     [SerializeField] private TMP_Text coinsText;
+
+    [Tooltip("TextMeshPro — текст для отображения общего веса инвентаря")]
     [SerializeField] private TMP_Text weightText;
 
+    /// <summary>
+    /// Создаёт слоты, подписывается на изменения инвентаря и выполняет первую отрисовку.
+    /// </summary>
     private void Start()
     {
         BuildSlots();
@@ -15,16 +30,25 @@ public class InventoryUI : MonoBehaviour
         Refresh();
     }
 
+    /// <summary>
+    /// Подписывается на событие изменения инвентаря при активации объекта.
+    /// </summary>
     private void OnEnable()
     {
         Subscribe();
     }
 
+    /// <summary>
+    /// Отписывается от события изменения инвентаря при деактивации объекта.
+    /// </summary>
     private void OnDisable()
     {
         Unsubscribe();
     }
 
+    /// <summary>
+    /// Подписывает метод Refresh на событие OnChanged InventorySystem.
+    /// </summary>
     private void Subscribe()
     {
         Unsubscribe();
@@ -35,12 +59,18 @@ public class InventoryUI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Отписывает метод Refresh от события OnChanged.
+    /// </summary>
     private void Unsubscribe()
     {
         if (InventorySystem.Instance != null)
             InventorySystem.Instance.OnChanged -= Refresh;
     }
 
+    /// <summary>
+    /// Создаёт все слоты инвентаря из префаба и инициализирует их.
+    /// </summary>
     private void BuildSlots()
     {
         if (gridContent == null || slotPrefab == null) return;
@@ -57,6 +87,10 @@ public class InventoryUI : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Обновляет визуальное состояние всех слотов, текст монет и веса.
+    /// Вызывается автоматически при каждом изменении инвентаря.
+    /// </summary>
     public void Refresh()
     {
         var inv = InventorySystem.Instance;
